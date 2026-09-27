@@ -144,3 +144,8 @@ Todas las contraseñas son: `12345678`
 | **Foráneo** | `71234567` | `pedro.foraneo@gmail.com` | Activo |
 | **Externo** | `79876543` | `ana.externa@gmail.com` | Activo |
 | **Prueba Verificada** | `20260001` | `reservafisiunmsm@gmail.com` | Activo |
+
+---
+
+## 📋 Lista de Pendientes y Próximos Pasos
+Consulta el documento [`PENDIENTES.md`](./PENDIENTES.md) para ver la configuración pendiente de correo SMTP real (Google 2FA + Contraseña de Aplicación) y las tareas planificadas para la Iteración 2.

@@ -1,0 +1,113 @@
+.admin-panel-wrapper {
+  padding: 2rem;
+  background-color: #f8fafc;
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.admin-header h2 {
+  color: #0e2b5c; /* Azul FISI */
+  margin-bottom: 0.5rem;
+}
+
+.admin-header p {
+  color: #64748b;
+  margin-bottom: 2rem;
+}
+
+.alert-banner {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+}
+
+.alert-banner.success {
+  background-color: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.alert-banner.error {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.table-container {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  overflow-x: auto;
+}
+
+.fisi-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.fisi-table th {
+  background-color: #0e2b5c; /* Azul FISI */
+  color: white;
+  padding: 1rem;
+  font-size: 0.9rem;
+}
+
+.fisi-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  color: #334155;
+  vertical-align: middle;
+}
+
+.fw-bold {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.badge-trabajador {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid #bfdbfe;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-approve, .btn-reject {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: opacity 0.2s;
+}
+
+.btn-approve {
+  background-color: #16a34a;
+  color: white;
+}
+
+.btn-reject {
+  background-color: #b91c1c; /* Rojo FISI */
+  color: white;
+}
+
+.btn-approve:hover, .btn-reject:hover {
+  opacity: 0.85;
+}
+
+.empty-state {
+  padding: 3rem;
+  text-align: center;
+  color: #64748b;
+  font-style: italic;
+}

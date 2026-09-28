@@ -9,6 +9,7 @@ export default function Register({ onNavigate, onRegisterSuccess }) {
     rol: 'alumno',
     password: '',
     confirmPassword: '',
+    codigoTrabajador: '', // Nuevo campo para HU-U02
   });
 
   const [error, setError] = useState('');
@@ -27,10 +28,16 @@ export default function Register({ onNavigate, onRegisterSuccess }) {
     setError('');
     setSuccessMsg('');
 
-    const { codigoDni, nombre, correo, rol, password, confirmPassword } = formData;
+    const { codigoDni, nombre, correo, rol, password, confirmPassword, codigoTrabajador } = formData;
 
     if (!codigoDni.trim() || !nombre.trim() || !correo.trim() || !password) {
       setError('Por favor, completa todos los campos obligatorios.');
+      return;
+    }
+
+    // Criterio 1 (HU-U02): Validación del requisito adicional si es administrativo
+    if (rol === 'administrativo' && !codigoTrabajador.trim()) {
+      setError('El Código de Trabajador o documento es obligatorio para el personal administrativo.');
       return;
     }
 
@@ -59,16 +66,23 @@ export default function Register({ onNavigate, onRegisterSuccess }) {
     setLoading(true);
 
     try {
+      // Preparamos el payload y solo enviamos el codigo_trabajador si aplica
+      const payload = {
+        codigo_dni: codigoDni.trim(),
+        nombre: nombre.trim(),
+        correo: correo.trim().toLowerCase(),
+        rol,
+        password,
+      };
+
+      if (rol === 'administrativo') {
+        payload.codigo_trabajador = codigoTrabajador.trim();
+      }
+
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          codigo_dni: codigoDni.trim(),
-          nombre: nombre.trim(),
-          correo: correo.trim().toLowerCase(),
-          rol,
-          password,
-        }),
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();
@@ -77,14 +91,20 @@ export default function Register({ onNavigate, onRegisterSuccess }) {
         throw new Error(data.message || 'Error al registrar el usuario.');
       }
 
-      setSuccessMsg('¡Registro completado con éxito! Redirigiendo al inicio de sesión...');
+      // Criterio 2 (HU-U02): Mensaje de estado pendiente para administrativos
+      if (rol === 'administrativo') {
+        setSuccessMsg('¡Registro completado! Tu cuenta está en estado PENDIENTE. Un administrador validará tu cargo.');
+      } else {
+        setSuccessMsg('¡Registro completado con éxito! Redirigiendo al inicio de sesión...');
+      }
+
       setTimeout(() => {
         if (onRegisterSuccess) {
           onRegisterSuccess(data.usuario);
         } else if (onNavigate) {
           onNavigate('login');
         }
-      }, 1500);
+      }, 2500); // Aumentado ligeramente para que lean el mensaje de pendiente
     } catch (err) {
       setError(err.message || 'Error al conectar con el servidor.');
     } finally {
@@ -103,7 +123,11 @@ export default function Register({ onNavigate, onRegisterSuccess }) {
 
         <form onSubmit={handleSubmit} className="login-form" style={{ padding: '0.5rem 2rem 1.75rem' }}>
           {error && <div className="error-banner">{error}</div>}
-          {successMsg && <div className="success-banner">{successMsg}</div>}
+          {successMsg && (
+            <div className="success-banner" style={{ backgroundColor: formData.rol === 'administrativo' ? '#fef3c7' : '#dcfce7', color: formData.rol === 'administrativo' ? '#92400e' : '#166534' }}>
+              {successMsg}
+            </div>
+          )}
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '0.85rem' }}>
             <div className="form-group" style={{ marginBottom: '0.85rem' }}>
@@ -163,6 +187,23 @@ export default function Register({ onNavigate, onRegisterSuccess }) {
               disabled={loading}
             />
           </div>
+
+          {/* Campo renderizado condicionalmente para el personal administrativo (HU-U02) */}
+          {formData.rol === 'administrativo' && (
+            <div className="form-group" style={{ marginBottom: '0.85rem', backgroundColor: '#eff6ff', padding: '0.75rem', borderRadius: '6px', borderLeft: '3px solid #3b82f6' }}>
+              <label htmlFor="codigoTrabajador">Código de Trabajador / Documento *</label>
+              <input
+                id="codigoTrabajador"
+                name="codigoTrabajador"
+                type="text"
+                placeholder="Requisito para validación de cargo"
+                value={formData.codigoTrabajador}
+                onChange={handleChange}
+                disabled={loading}
+                style={{ marginTop: '0.3rem' }}
+              />
+            </div>
+          )}
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '0.85rem' }}>
             <div className="form-group" style={{ marginBottom: '0.85rem' }}>

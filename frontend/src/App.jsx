@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react';
 import Login from './components/Login';
 import Register from './components/Register';
 import ForgotPassword from './components/ForgotPassword';
+import ValidacionPersonal from './components/ValidacionPersonal';
 import './App.css';
 
 function App() {
-  const [currentView, setCurrentView] = useState('login'); // 'login' | 'register' | 'forgotPassword' | 'dashboard'
+  // Ahora manejamos también 'validacionAdmin'
+  const [currentView, setCurrentView] = useState('login'); 
   const [currentUser, setCurrentUser] = useState(null);
 
   // Cargar sesión persistida si existe
@@ -88,6 +90,40 @@ function App() {
         />
       )}
 
+      {/* Renderizado de la vista de Validación de Personal (Solo para Administrativos) */}
+      {currentView === 'validacionAdmin' && currentUser && currentUser.rol === 'administrativo' && (
+        <div className="dashboard-layout">
+          {/* Header Superior Reutilizado */}
+          <header className="dashboard-header">
+            <div className="brand-section">
+              <div className="brand-crest">FISI • UNMSM</div>
+              <h1 className="system-title">Validación de Personal</h1>
+            </div>
+
+            <div className="user-nav">
+              <div className="user-profile-meta">
+                <div className="user-name">{currentUser.nombre}</div>
+                <div className="user-email">{currentUser.correo}</div>
+              </div>
+              {/* Botón para volver al Dashboard principal */}
+              <button 
+                onClick={() => setCurrentView('dashboard')} 
+                className="btn-primary"
+                style={{ backgroundColor: '#1d4ed8', border: 'none', color: 'white', padding: '0.5rem 1rem', borderRadius: '4px', cursor: 'pointer', marginRight: '10px' }}
+              >
+                Volver al Inicio
+              </button>
+              <button onClick={handleLogout} className="btn-logout">
+                Cerrar Sesión
+              </button>
+            </div>
+          </header>
+
+          {/* Componente de la HU-U02 */}
+          <ValidacionPersonal />
+        </div>
+      )}
+
       {currentView === 'dashboard' && currentUser && (
         <div className="dashboard-layout">
           {/* Header Superior */}
@@ -116,6 +152,16 @@ function App() {
                 <div>{getRoleBadge(currentUser.rol)}</div>
                 <h2>¡Bienvenido/a, {currentUser.nombre}!</h2>
                 <p>Has iniciado sesión correctamente en el Sistema Oficial de Reservas de la FISI.</p>
+                
+                {/* Botón exclusivo para Administradores que lleva a la vista de Validación */}
+                {currentUser.rol === 'administrativo' && (
+                  <button 
+                    onClick={() => setCurrentView('validacionAdmin')}
+                    style={{ marginTop: '1.5rem', backgroundColor: '#0e2b5c', color: 'white', padding: '0.75rem 1.5rem', borderRadius: '6px', border: 'none', cursor: 'pointer', fontWeight: 'bold', fontSize: '1rem' }}
+                  >
+                    Ir al Panel de Validación de Personal
+                  </button>
+                )}
               </div>
 
               <div className="user-status-card">

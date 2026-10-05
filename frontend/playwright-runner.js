@@ -186,18 +186,26 @@ async function runE2E() {
     // 6.2 Solicitud legítima con DNI y correo registrado
     console.log('  -> Solicitud legítima con correo correcto...');
     await page.fill('#correo', newEmail);
-    await page.click('button[type="submit"]');
+    const [forgotRes] = await Promise.all([
+      page.waitForResponse((r) => r.url().includes('/api/auth/forgot-password') && r.status() === 200),
+      page.click('button[type="submit"]')
+    ]);
+    const forgotData = await forgotRes.json();
+    const otpCodigo = forgotData.codigoOtp;
 
     // Paso 2: Pantalla de Código OTP y Nueva Contraseña
     await page.waitForSelector('#codigoOtp');
+    if (otpCodigo) {
+      await page.fill('#codigoOtp', otpCodigo);
+    }
+    await page.fill('#newPassword', 'NuevaClave2026');
+    await page.fill('#confirmPassword', 'NuevaClave2026');
     await page.screenshot({ path: path.join(screenshotsDir, '07_forgot_password_step2.png') });
     console.log('📸 Captura guardada: 07_forgot_password_step2.png');
 
-    await page.fill('#newPassword', 'NuevaClave2026');
-    await page.fill('#confirmPassword', 'NuevaClave2026');
     await page.click('button[type="submit"]');
 
-    await page.waitForSelector('.success-banner');
+    await page.waitForSelector('text=¡Contraseña restablecida exitosamente!', { timeout: 10000 });
     await page.screenshot({ path: path.join(screenshotsDir, '08_password_reset_success.png') });
     console.log('📸 Captura guardada: 08_password_reset_success.png');
 
@@ -271,13 +279,20 @@ async function runE2E() {
     page.on('dialog', async (dialog) => {
       await dialog.accept(); // Confirmar el prompt/confirmación del navegador
     });
-    const botonAprobar = await page.$('.btn-approve');
-    if (botonAprobar) {
-      await botonAprobar.click();
-      await page.waitForTimeout(1500);
-      await page.screenshot({ path: path.join(screenshotsDir, '13_aprobacion_exitosa_admin.png') });
-      console.log('📸 Captura guardada: 13_aprobacion_exitosa_admin.png (Aprobación completada)');
-    }
+    
+    // Ubicar la fila exacta del administrativo registrado por su DNI
+    const filaPostulante = page.locator(`tr:has-text("${adminDni}")`);
+    await filaPostulante.waitFor({ state: 'visible', timeout: 8000 });
+    const botonAprobar = filaPostulante.locator('.btn-approve');
+    await botonAprobar.click();
+
+    // Esperar a que la petición termine y el banner de éxito aparezca
+    await page.waitForSelector('.alert-banner.success', { timeout: 10000 });
+    await page.screenshot({ path: path.join(screenshotsDir, '13_aprobacion_exitosa_admin.png') });
+    console.log('📸 Captura guardada: 13_aprobacion_exitosa_admin.png (Aprobación completada)');
+    
+    // Breve pausa para asegurar consistencia
+    await page.waitForTimeout(1000);
 
     // TEST 10 (HU-U02): El usuario administrativo recién aprobado inicia sesión con éxito
     console.log('\n--- TEST 10 (HU-U02): Inicio de Sesión del Administrativo Recién Aprobado ---');

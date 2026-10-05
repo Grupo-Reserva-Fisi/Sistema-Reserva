@@ -29,11 +29,11 @@ export const AdminController = {
 
       await UserModel.approveValidation(id);
 
-      // Notificación por correo al usuario
-      await sendValidationApprovalEmail({
+      // Notificación por correo al usuario en segundo plano para agilizar la respuesta
+      sendValidationApprovalEmail({
         destinatario: usuario.correo,
         nombre: usuario.nombre
-      });
+      }).catch((err) => console.warn('[Email Warning]:', err.message));
 
       return res.status(200).json({
         success: true,
@@ -63,12 +63,12 @@ export const AdminController = {
       const cleanMotivo = motivo.trim();
       await UserModel.rejectValidation(id, cleanMotivo);
 
-      // Criterio 5: Notificación con el motivo
-      await sendValidationRejectionEmail({
+      // Criterio 5: Notificación con el motivo en segundo plano
+      sendValidationRejectionEmail({
         destinatario: usuario.correo,
         nombre: usuario.nombre,
         motivo: cleanMotivo
-      });
+      }).catch((err) => console.warn('[Email Warning]:', err.message));
 
       return res.status(200).json({
         success: true,

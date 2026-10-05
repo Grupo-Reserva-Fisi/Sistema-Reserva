@@ -101,8 +101,16 @@ Sistema Web integral para la gestión, reservación de áreas de recreación, sa
 
 El repositorio incluye la grabación en video del flujo completo de las pruebas E2E ejecutadas con navegador visible:
 
-- 🎬 **Video demostración HU-U01 + HU-U02:** [`docs/videos/prueba_e2e_playwright_hu_u02.mp4`](./docs/videos/prueba_e2e_playwright_hu_u02.mp4)
-- 🎬 **Video demostración HU-U01:** [`docs/videos/prueba_e2e_playwright.mp4`](./docs/videos/prueba_e2e_playwright.mp4)
+### 🎬 Demostración en Video de HU-U01 + HU-U02
+
+<div align="center">
+  <video src="https://github.com/Grupo-Reserva-Fisi/Sistema-Reserva/raw/feature/HU-U02-registro-admin/docs/videos/prueba_e2e_playwright_hu_u02.mp4" controls="controls" width="100%" style="max-height: 520px; border-radius: 8px; border: 1px solid #e2e8f0;">
+    Tu navegador no soporta el reproductor de video HTML5. Puedes <a href="./docs/videos/prueba_e2e_playwright_hu_u02.mp4">abrir o descargar el video MP4 aquí</a>.
+  </video>
+</div>
+
+- 📥 **Descarga / Reproducción directa (HU-U01 + HU-U02):** [`docs/videos/prueba_e2e_playwright_hu_u02.mp4`](./docs/videos/prueba_e2e_playwright_hu_u02.mp4)
+- 🎬 **Video demostración inicial (HU-U01):** [`docs/videos/prueba_e2e_playwright.mp4`](./docs/videos/prueba_e2e_playwright.mp4)
 - 📸 **Capturas generadas:** Disponibles en [`frontend/e2e-screenshots/`](./frontend/e2e-screenshots/):
   - `01_login_view.png` — Pantalla de login inicial.
   - `02_register_view.png` — Formulario de registro a 2 columnas.

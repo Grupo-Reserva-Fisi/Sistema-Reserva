@@ -210,10 +210,96 @@ async function runE2E() {
     await page.waitForSelector('.dashboard-layout');
     await page.screenshot({ path: path.join(screenshotsDir, '09_dashboard_post_unblock.png') });
     console.log('📸 Captura guardada: 09_dashboard_post_unblock.png');
+
+    // TEST 7 (HU-U02): Registro de Administrativo y Verificación de Estado Pendiente
+    console.log('\n--- TEST 7 (HU-U02): Registro con Código de Trabajador y Estado Pendiente ---');
+    await page.click('text=Cerrar Sesión');
+    await page.waitForSelector('.login-card');
+
+    await page.click('text=Regístrate aquí');
+    await page.waitForSelector('text=Crear Cuenta');
+
+    const adminRandom = Math.floor(1000 + Math.random() * 9000);
+    const adminDni = `2027${adminRandom}`;
+    const adminEmail = `postulante_admin_${adminRandom}@unmsm.edu.pe`;
+
+    await page.fill('#codigoDni', adminDni);
+    await page.fill('#nombre', 'Lic. Javier Mendoza');
+    await page.fill('#correo', adminEmail);
+    await page.selectOption('#rol', 'administrativo');
+
+    // Campo condicional obligatorio para administrativos
+    await page.waitForSelector('#codigoTrabajador');
+    await page.fill('#codigoTrabajador', `ADM-FISI-${adminRandom}`);
+    await page.fill('#password', 'AdminPass2026');
+    await page.fill('#confirmPassword', 'AdminPass2026');
+
+    await page.click('button[type="submit"]');
+    await page.waitForSelector('.success-banner');
+    await page.screenshot({ path: path.join(screenshotsDir, '10_registro_admin_pendiente.png') });
+    console.log('📸 Captura guardada: 10_registro_admin_pendiente.png (Cuenta en estado PENDIENTE)');
+
+    // Esperar redirección al Login
+    await page.waitForSelector('text=Iniciar Sesión', { timeout: 6000 });
+
+    // TEST 8 (HU-U02): Intento de Login de cuenta administrativa pendiente (Bloqueo 403)
+    console.log('\n--- TEST 8 (HU-U02): Intento de Login con Cuenta Pendiente ---');
+    await page.fill('#codigoDni', adminDni);
+    await page.fill('#password', 'AdminPass2026');
+    await page.click('button[type="submit"]');
+
+    await page.waitForSelector('.error-banner');
+    await page.screenshot({ path: path.join(screenshotsDir, '11_login_bloqueado_pendiente.png') });
+    console.log('📸 Captura guardada: 11_login_bloqueado_pendiente.png (Banner de espera de validación)');
+
+    // TEST 9 (HU-U02): Ingreso de Administrador Superior y Panel de Validación
+    console.log('\n--- TEST 9 (HU-U02): Administrador Superior valida y aprueba en el Panel ---');
+    // Login con Carlos Admin
+    await page.fill('#codigoDni', '08901234');
+    await page.fill('#password', '12345678');
+    await page.click('button[type="submit"]');
+
+    await page.waitForSelector('text=Ir al Panel de Validación de Personal');
+    await page.click('text=Ir al Panel de Validación de Personal');
+
+    await page.waitForSelector('.admin-panel-wrapper');
+    await page.screenshot({ path: path.join(screenshotsDir, '12_panel_validacion_admin.png') });
+    console.log('📸 Captura guardada: 12_panel_validacion_admin.png (Panel de Validación con postulantes)');
+
+    // Clic en Aprobar al postulante recién registrado
+    console.log('  -> Aprobando solicitud en pantalla...');
+    page.on('dialog', async (dialog) => {
+      await dialog.accept(); // Confirmar el prompt/confirmación del navegador
+    });
+    const botonAprobar = await page.$('.btn-approve');
+    if (botonAprobar) {
+      await botonAprobar.click();
+      await page.waitForTimeout(1500);
+      await page.screenshot({ path: path.join(screenshotsDir, '13_aprobacion_exitosa_admin.png') });
+      console.log('📸 Captura guardada: 13_aprobacion_exitosa_admin.png (Aprobación completada)');
+    }
+
+    // TEST 10 (HU-U02): El usuario administrativo recién aprobado inicia sesión con éxito
+    console.log('\n--- TEST 10 (HU-U02): Inicio de Sesión del Administrativo Recién Aprobado ---');
+    console.log('  -> Cerrando sesión del administrador superior...');
+    await page.click('text=Cerrar Sesión');
+    await page.waitForSelector('.login-card');
+
+    console.log('  -> Iniciando sesión con las credenciales del administrativo aprobado...');
+    await page.fill('#codigoDni', adminDni);
+    await page.fill('#password', 'AdminPass2026');
+    await page.click('button[type="submit"]');
+
+    // Debe cargar directamente el dashboard y mostrar su insignia de Administrativo
+    await page.waitForSelector('.dashboard-layout');
+    await page.waitForSelector('text=Lic. Javier Mendoza');
+    await page.screenshot({ path: path.join(screenshotsDir, '14_dashboard_admin_aprobado.png') });
+    console.log('📸 Captura guardada: 14_dashboard_admin_aprobado.png (Acceso concedido al Dashboard con rol Administrativo)');
+
     console.log('👀 Manteniendo ventana abierta unos segundos para tu visualización...');
     await page.waitForTimeout(3000);
 
-    console.log('\n🎉 ¡TODAS LAS PRUEBAS E2E Y VERIFICACIÓN VISUAL PASARON CON ÉXITO! 🎉\n');
+    console.log('\n🎉 ¡TODAS LAS PRUEBAS E2E (HU-U01 + HU-U02) Y VERIFICACIÓN VISUAL PASARON CON ÉXITO! 🎉\n');
   } catch (error) {
     console.error('❌ Error durante pruebas E2E:', error);
     process.exit(1);

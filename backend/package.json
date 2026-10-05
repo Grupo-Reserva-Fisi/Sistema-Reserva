@@ -7,7 +7,9 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
-    "test": "node test-auth.js"
+    "test": "node test-auth.js",
+    "test:hu2": "node test-hu-u02.js",
+    "test:all": "node test-auth.js && node test-hu-u02.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

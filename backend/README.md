@@ -52,6 +52,9 @@ Base URL: `http://localhost:5000/api`
 | `POST` | `/auth/forgot-password` | Envío de código OTP de 6 dígitos al correo | `{ identificador }` *(código/DNI o correo)* |
 | `POST` | `/auth/reset-password` | Validación de OTP, restablecimiento y desbloqueo | `{ identificador, token, newPassword }` |
 | `GET` | `/auth/me` | Obtener perfil del usuario autenticado | Header `Authorization: Bearer <token>` |
+| `GET` | `/admin/pendientes` | *(HU-U02)* Lista de personal administrativo pendiente | Header `Authorization: Bearer <token>` (Admin) |
+| `PUT` | `/admin/usuarios/:id/aprobar` | *(HU-U02)* Aprobar registro administrativo y notificar | Header `Authorization: Bearer <token>` (Admin) |
+| `PUT` | `/admin/usuarios/:id/rechazar` | *(HU-U02)* Rechazar registro administrativo con motivo | `{ motivo }` + Header `Authorization` (Admin) |
 | `GET` | `/health` | Chequeo de estado del servidor | Ninguno |
 
 ---

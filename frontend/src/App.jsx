@@ -120,7 +120,7 @@ function App() {
           </header>
 
           {/* Componente de la HU-U02 */}
-          <ValidacionPersonal />
+          <ValidacionPersonal token={localStorage.getItem('fisi_auth_token')} />
         </div>
       )}
 

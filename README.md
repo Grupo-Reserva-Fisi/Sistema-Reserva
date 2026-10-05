@@ -45,6 +45,35 @@ Sistema Web integral para la gestión, reservación de áreas de recreación, sa
 
 ---
 
+## 🛡️ Iteración 1 / 2: HU-U02 - Registro y Validación de Personal Administrativo
+
+### Criterios y Funcionalidades Implementadas:
+1. **Requisito Adicional de Cargo (Acreditación):**
+   - El formulario de registro solicita obligatoriamente el **Código de Trabajador o Documento Acreditador** cuando se selecciona el rol `administrativo`.
+   - Se valida tanto en el frontend como en el backend (`HTTP 400 Bad Request` si se omite).
+
+2. **Estado de Cuenta 'Pendiente':**
+   - Todo registro con rol administrativo queda automáticamente en `estado_validacion: 'pendiente'`.
+   - El sistema bloquea el inicio de sesión (`HTTP 403 Forbidden`) y notifica al usuario con un banner de advertencia (`⏳ Cuenta Pendiente de Validación`) hasta que un administrador superior apruebe la cuenta.
+
+3. **Panel Administrativo de Validación (`ValidacionPersonal.jsx`):**
+   - Acceso exclusivo para administradores activos a través de `/api/admin/pendientes`.
+   - Tabla interactiva con búsqueda de postulantes, visualización de código de trabajador y fecha de registro.
+   - Acciones seguras de **Aprobar** y **Rechazar**.
+
+4. **Asignación de Privilegios Administrativos:**
+   - Al aprobar la solicitud (`PUT /api/admin/usuarios/:id/aprobar`), el usuario adquiere acceso pleno al sistema y a las herramientas de gestión.
+   - Se despacha una notificación por correo electrónico confirmando la activación.
+
+5. **Notificación y Registro de Rechazo con Motivo:**
+   - Al rechazar una solicitud (`PUT /api/admin/usuarios/:id/rechazar`), el administrador debe ingresar obligatoriamente el motivo.
+   - El usuario recibe un correo formal con el motivo del rechazo y, al intentar ingresar al sistema, la interfaz le muestra el detalle explicativo.
+
+6. **Batería de Pruebas Automatizadas:**
+   - 9 pruebas de integración ejecutables con `npm run test:hu2` en `backend/` cubriendo los 5 criterios de aceptación de la HU.
+
+---
+
 ## 🛠️ Arquitectura y Tecnologías
 
 ### Frontend (`/frontend`)

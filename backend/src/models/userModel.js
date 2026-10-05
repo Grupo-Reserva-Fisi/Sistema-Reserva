@@ -10,6 +10,9 @@ function mapConvexUser(u) {
     correo: u.correo,
     password_hash: u.passwordHash,
     rol: u.rol,
+    codigo_trabajador: u.codigoTrabajador,
+    estado_validacion: u.estadoValidacion || 'aprobado',
+    motivo_rechazo: u.motivoRechazo,
     fecha_registro: u.fechaRegistro,
     intentos_fallidos: u.intentosFallidos || 0,
     bloqueado: !!u.bloqueado,
@@ -55,13 +58,13 @@ export const UserModel = {
     }
 
     const res = await query(
-      'SELECT id, codigo_dni, nombre, correo, rol, fecha_registro, intentos_fallidos, bloqueado FROM usuarios WHERE id = $1 LIMIT 1',
+      'SELECT id, codigo_dni, nombre, correo, rol, codigo_trabajador, estado_validacion, motivo_rechazo, fecha_registro, intentos_fallidos, bloqueado FROM usuarios WHERE id = $1 LIMIT 1',
       [id]
     );
     return res.rows[0] || null;
   },
 
-  async create({ codigo_dni, nombre, correo, password_hash, rol }) {
+  async create({ codigo_dni, nombre, correo, password_hash, rol, codigo_trabajador = null, estado_validacion = 'aprobado' }) {
     if (isConvexActive()) {
       const client = getConvexClient();
       const result = await client.mutation('users:register', {
@@ -69,7 +72,9 @@ export const UserModel = {
         nombre: nombre.trim(),
         correo: correo.trim().toLowerCase(),
         passwordHash: password_hash,
-        rol
+        rol,
+        codigoTrabajador: codigo_trabajador ? codigo_trabajador.trim() : undefined,
+        estadoValidacion: estado_validacion
       });
       return {
         id: result.userId,
@@ -77,16 +82,18 @@ export const UserModel = {
         nombre: nombre.trim(),
         correo: correo.trim().toLowerCase(),
         rol,
+        codigo_trabajador: codigo_trabajador ? codigo_trabajador.trim() : null,
+        estado_validacion,
         fecha_registro: Date.now(),
         bloqueado: false
       };
     }
 
     const res = await query(
-      `INSERT INTO usuarios (codigo_dni, nombre, correo, password_hash, rol, intentos_fallidos, bloqueado)
-       VALUES ($1, $2, $3, $4, $5, 0, 0)
-       RETURNING id, codigo_dni, nombre, correo, rol, fecha_registro, bloqueado`,
-      [codigo_dni, nombre.trim(), correo.trim().toLowerCase(), password_hash, rol]
+      `INSERT INTO usuarios (codigo_dni, nombre, correo, password_hash, rol, codigo_trabajador, estado_validacion, intentos_fallidos, bloqueado)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, 0, 0)
+       RETURNING id, codigo_dni, nombre, correo, rol, codigo_trabajador, estado_validacion, fecha_registro, bloqueado`,
+      [codigo_dni, nombre.trim(), correo.trim().toLowerCase(), password_hash, rol, codigo_trabajador ? codigo_trabajador.trim() : null, estado_validacion]
     );
     return res.rows[0];
   },
@@ -153,6 +160,52 @@ export const UserModel = {
        SET password_hash = $1, token_recuperacion = NULL, token_expiracion = NULL, intentos_fallidos = 0, bloqueado = 0 
        WHERE id = $2`,
       [passwordHash, id]
+    );
+  },
+
+  async findPendingValidations() {
+    if (isConvexActive()) {
+      const client = getConvexClient();
+      const users = await client.query('users:getPendingValidation', {});
+      return users.map(mapConvexUser);
+    }
+
+    const res = await query(
+      `SELECT id, codigo_dni, nombre, correo, rol, codigo_trabajador, estado_validacion, fecha_registro 
+       FROM usuarios 
+       WHERE estado_validacion = 'pendiente' 
+       ORDER BY fecha_registro ASC`
+    );
+    return res.rows;
+  },
+
+  async approveValidation(id) {
+    if (isConvexActive()) {
+      const client = getConvexClient();
+      await client.mutation('users:approveUser', { id });
+      return;
+    }
+
+    await query(
+      `UPDATE usuarios 
+       SET estado_validacion = 'aprobado', motivo_rechazo = NULL 
+       WHERE id = $1`,
+      [id]
+    );
+  },
+
+  async rejectValidation(id, motivo) {
+    if (isConvexActive()) {
+      const client = getConvexClient();
+      await client.mutation('users:rejectUser', { id, motivo });
+      return;
+    }
+
+    await query(
+      `UPDATE usuarios 
+       SET estado_validacion = 'rechazado', motivo_rechazo = $1 
+       WHERE id = $2`,
+      [motivo, id]
     );
   }
 };

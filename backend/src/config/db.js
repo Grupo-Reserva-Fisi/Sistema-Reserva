@@ -92,6 +92,9 @@ export async function initDB() {
       correo TEXT NOT NULL UNIQUE,
       password_hash TEXT NOT NULL,
       rol TEXT NOT NULL CHECK(rol IN ('alumno', 'docente', 'administrativo', 'foraneo', 'externo')),
+      codigo_trabajador TEXT,
+      estado_validacion TEXT NOT NULL DEFAULT 'aprobado' CHECK(estado_validacion IN ('aprobado', 'pendiente', 'rechazado')),
+      motivo_rechazo TEXT,
       fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP,
       intentos_fallidos INTEGER NOT NULL DEFAULT 0,
       bloqueado INTEGER NOT NULL DEFAULT 0,
@@ -100,6 +103,23 @@ export async function initDB() {
     );
   `);
 
+  // Migración dinámica para bases SQLite existentes (HU-U02)
+  try {
+    const tableInfo = sqliteDb.prepare("PRAGMA table_info(usuarios)").all();
+    const columnNames = tableInfo.map(c => c.name);
+    if (!columnNames.includes('codigo_trabajador')) {
+      sqliteDb.exec("ALTER TABLE usuarios ADD COLUMN codigo_trabajador TEXT;");
+    }
+    if (!columnNames.includes('estado_validacion')) {
+      sqliteDb.exec("ALTER TABLE usuarios ADD COLUMN estado_validacion TEXT NOT NULL DEFAULT 'aprobado';");
+    }
+    if (!columnNames.includes('motivo_rechazo')) {
+      sqliteDb.exec("ALTER TABLE usuarios ADD COLUMN motivo_rechazo TEXT;");
+    }
+  } catch (err) {
+    console.warn('[DB SQLite Migration Warning]:', err.message);
+  }
+
   // Verificar si hay registros
   const countStmt = sqliteDb.prepare('SELECT COUNT(*) as total FROM usuarios');
   const countRes = countStmt.all();
@@ -107,15 +127,16 @@ export async function initDB() {
     console.log('[DB SQLite] Insertando usuarios iniciales (seeds)...');
     const seedHash = '$2a$10$pMPlgAQZVXUK/.NmylOQJO.eqbMKdzXNX1NpB.s/GdUnNoeILIkSC'; // '12345678'
     const insertStmt = sqliteDb.prepare(`
-      INSERT INTO usuarios (codigo_dni, nombre, correo, password_hash, rol, intentos_fallidos, bloqueado)
-      VALUES (?, ?, ?, ?, ?, 0, 0)
+      INSERT INTO usuarios (codigo_dni, nombre, correo, password_hash, rol, codigo_trabajador, estado_validacion, intentos_fallidos, bloqueado)
+      VALUES (?, ?, ?, ?, ?, ?, ?, 0, 0)
     `);
 
-    insertStmt.run('20200101', 'Juan Alumno Pérez', 'juan.alumno@unmsm.edu.pe', seedHash, 'alumno');
-    insertStmt.run('10102020', 'Dra. María Docente López', 'maria.docente@unmsm.edu.pe', seedHash, 'docente');
-    insertStmt.run('08901234', 'Carlos Admin FISI', 'carlos.admin@unmsm.edu.pe', seedHash, 'administrativo');
-    insertStmt.run('71234567', 'Pedro Foráneo García', 'pedro.foraneo@gmail.com', seedHash, 'foraneo');
-    insertStmt.run('79876543', 'Ana Externa Quispe', 'ana.externa@gmail.com', seedHash, 'externo');
+    insertStmt.run('20200101', 'Juan Alumno Pérez', 'juan.alumno@unmsm.edu.pe', seedHash, 'alumno', null, 'aprobado');
+    insertStmt.run('10102020', 'Dra. María Docente López', 'maria.docente@unmsm.edu.pe', seedHash, 'docente', null, 'aprobado');
+    insertStmt.run('08901234', 'Carlos Admin FISI', 'carlos.admin@unmsm.edu.pe', seedHash, 'administrativo', 'ADM-FISI-001', 'aprobado');
+    insertStmt.run('07890123', 'Lic. Roberto Pendiente', 'roberto.admin@unmsm.edu.pe', seedHash, 'administrativo', 'ADM-FISI-088', 'pendiente');
+    insertStmt.run('71234567', 'Pedro Foráneo García', 'pedro.foraneo@gmail.com', seedHash, 'foraneo', null, 'aprobado');
+    insertStmt.run('79876543', 'Ana Externa Quispe', 'ana.externa@gmail.com', seedHash, 'externo', null, 'aprobado');
     console.log('[DB SQLite] Seeds insertados correctamente.');
   }
 }

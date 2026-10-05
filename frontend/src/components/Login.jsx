@@ -6,12 +6,16 @@ export default function Login({ onLoginSuccess, onNavigate }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isBlocked, setIsBlocked] = useState(false);
+  const [isPendingValidation, setIsPendingValidation] = useState(false);
+  const [isRejected, setIsRejected] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setIsBlocked(false);
+    setIsPendingValidation(false);
+    setIsRejected(false);
 
     const cleanInput = codigoDni.trim();
     if (!cleanInput) {
@@ -38,6 +42,12 @@ export default function Login({ onLoginSuccess, onNavigate }) {
       if (!response.ok) {
         if (data.bloqueado) {
           setIsBlocked(true);
+        }
+        if (data.pendienteValidacion) {
+          setIsPendingValidation(true);
+        }
+        if (data.rechazado) {
+          setIsRejected(true);
         }
         throw new Error(data.message || 'Código/DNI o contraseña incorrectos.');
       }
@@ -69,10 +79,24 @@ export default function Login({ onLoginSuccess, onNavigate }) {
               style={
                 isBlocked
                   ? { backgroundColor: '#fee2e2', color: '#991b1b', borderLeftColor: '#b91c1c' }
+                  : isPendingValidation
+                  ? { backgroundColor: '#fef3c7', color: '#92400e', borderLeftColor: '#f59e0b' }
+                  : isRejected
+                  ? { backgroundColor: '#fee2e2', color: '#991b1b', borderLeftColor: '#ef4444' }
                   : {}
               }
             >
-              <strong>{isBlocked ? '⚠️ Cuenta Bloqueada' : 'Aviso'}:</strong> {error}
+              <strong>
+                {isBlocked
+                  ? '⚠️ Cuenta Bloqueada'
+                  : isPendingValidation
+                  ? '⏳ Cuenta Pendiente de Validación'
+                  : isRejected
+                  ? '❌ Registro Rechazado'
+                  : 'Aviso'}
+                :
+              </strong>{' '}
+              {error}
               {isBlocked && (
                 <div style={{ marginTop: '0.5rem' }}>
                   <a

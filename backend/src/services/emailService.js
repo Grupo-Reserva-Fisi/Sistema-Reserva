@@ -106,3 +106,119 @@ export async function sendOtpEmail({ destinatario, nombre, codigoOtp }) {
     return { success: true, previewUrl: null, codigoOtp };
   }
 }
+
+export async function sendValidationApprovalEmail({ destinatario, nombre }) {
+  console.log(`\n======================================================`);
+  console.log(`📧 [VALIDACIÓN DE PERSONAL FISI - APROBADO]`);
+  console.log(`   Destinatario: ${nombre} <${destinatario}>`);
+  console.log(`   Estado: Cuenta Administrativa APROBADA`);
+  console.log(`======================================================\n`);
+
+  try {
+    const { transporter, isEthereal } = await getTransporter();
+    if (!transporter) {
+      return { success: true, previewUrl: null };
+    }
+
+    const htmlContent = `
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 580px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background: #ffffff;">
+        <div style="background-color: #0e2b5c; padding: 24px; text-align: center; border-bottom: 4px solid #16a34a;">
+          <h1 style="color: #ffffff; margin: 0; font-size: 20px; font-weight: 700;">FISI • UNMSM</h1>
+          <p style="color: #94a3b8; margin: 4px 0 0 0; font-size: 13px;">Sistema de Reservaciones y Préstamos</p>
+        </div>
+        <div style="padding: 32px 28px;">
+          <h2 style="color: #0f172a; margin-top: 0; font-size: 18px;">¡Registro Administrativo Aprobado!</h2>
+          <p style="color: #475569; font-size: 14px; line-height: 1.6;">
+            Estimado/a <strong>${nombre}</strong>, tu acreditación como <strong>Personal Administrativo</strong> ha sido validada y aprobada exitosamente.
+          </p>
+          <div style="background-color: #dcfce7; border-left: 4px solid #16a34a; padding: 14px 18px; margin: 20px 0; border-radius: 6px;">
+            <p style="margin: 0; color: #166534; font-weight: 600; font-size: 14px;">
+              Ya puedes iniciar sesión en el sistema con tus credenciales y acceder a los privilegios de administración.
+            </p>
+          </div>
+          <p style="color: #64748b; font-size: 12px; margin-top: 24px;">
+            Facultad de Ingeniería de Sistemas e Informática — UNMSM
+          </p>
+        </div>
+      </div>
+    `;
+
+    const info = await transporter.sendMail({
+      from: '"Sistema de Reservas FISI" <no-reply@fisi.unmsm.edu.pe>',
+      to: destinatario,
+      subject: '✅ Cuenta Administrativa Aprobada - FISI UNMSM',
+      text: `Hola ${nombre}, tu cuenta administrativa ha sido aprobada. Ya puedes iniciar sesión en el Sistema de Reservas FISI.`,
+      html: htmlContent
+    });
+
+    let previewUrl = null;
+    if (isEthereal) {
+      previewUrl = nodemailer.getTestMessageUrl(info);
+      console.log(`🔗 [Preview de Correo Ethereal]: ${previewUrl}`);
+    }
+
+    return { success: true, previewUrl, messageId: info.messageId };
+  } catch (err) {
+    console.warn('[Email Warning]: Error al enviar correo de aprobación:', err.message);
+    return { success: true, previewUrl: null };
+  }
+}
+
+export async function sendValidationRejectionEmail({ destinatario, nombre, motivo }) {
+  console.log(`\n======================================================`);
+  console.log(`📧 [VALIDACIÓN DE PERSONAL FISI - RECHAZADO]`);
+  console.log(`   Destinatario: ${nombre} <${destinatario}>`);
+  console.log(`   Motivo: ${motivo}`);
+  console.log(`======================================================\n`);
+
+  try {
+    const { transporter, isEthereal } = await getTransporter();
+    if (!transporter) {
+      return { success: true, previewUrl: null };
+    }
+
+    const htmlContent = `
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 580px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background: #ffffff;">
+        <div style="background-color: #0e2b5c; padding: 24px; text-align: center; border-bottom: 4px solid #b91c1c;">
+          <h1 style="color: #ffffff; margin: 0; font-size: 20px; font-weight: 700;">FISI • UNMSM</h1>
+          <p style="color: #94a3b8; margin: 4px 0 0 0; font-size: 13px;">Sistema de Reservaciones y Préstamos</p>
+        </div>
+        <div style="padding: 32px 28px;">
+          <h2 style="color: #0f172a; margin-top: 0; font-size: 18px;">Solicitud de Cuenta Administrativa Rechazada</h2>
+          <p style="color: #475569; font-size: 14px; line-height: 1.6;">
+            Estimado/a <strong>${nombre}</strong>, tu solicitud de registro como <strong>Personal Administrativo</strong> no ha sido aprobada.
+          </p>
+          <div style="background-color: #fee2e2; border-left: 4px solid #b91c1c; padding: 14px 18px; margin: 20px 0; border-radius: 6px;">
+            <p style="margin: 0; color: #991b1b; font-weight: 600; font-size: 14px;">Motivo indicado:</p>
+            <p style="margin: 6px 0 0 0; color: #7f1d1d; font-size: 13px;">${motivo}</p>
+          </div>
+          <p style="color: #475569; font-size: 13px;">
+            Si deseas regularizar tu solicitud, comunícate con la administración de la facultad o regístrate con tus datos verificados.
+          </p>
+          <p style="color: #64748b; font-size: 12px; margin-top: 24px;">
+            Facultad de Ingeniería de Sistemas e Informática — UNMSM
+          </p>
+        </div>
+      </div>
+    `;
+
+    const info = await transporter.sendMail({
+      from: '"Sistema de Reservas FISI" <no-reply@fisi.unmsm.edu.pe>',
+      to: destinatario,
+      subject: '⚠️ Solicitud Administrativa Rechazada - FISI UNMSM',
+      text: `Hola ${nombre}, tu solicitud de cuenta administrativa fue rechazada. Motivo: ${motivo}.`,
+      html: htmlContent
+    });
+
+    let previewUrl = null;
+    if (isEthereal) {
+      previewUrl = nodemailer.getTestMessageUrl(info);
+      console.log(`🔗 [Preview de Correo Ethereal]: ${previewUrl}`);
+    }
+
+    return { success: true, previewUrl, messageId: info.messageId };
+  } catch (err) {
+    console.warn('[Email Warning]: Error al enviar correo de rechazo:', err.message);
+    return { success: true, previewUrl: null };
+  }
+}

@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import authRoutes from './routes/authRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
 
 const app = express();
 
@@ -20,6 +21,9 @@ app.get('/api/health', (req, res) => {
 
 // Rutas de autenticación
 app.use('/api/auth', authRoutes);
+
+// Rutas de administración (HU-U02)
+app.use('/api/admin', adminRoutes);
 
 // Manejador de rutas no encontradas (404)
 app.use((req, res) => {

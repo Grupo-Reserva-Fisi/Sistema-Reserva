@@ -31,12 +31,16 @@ CREATE TABLE IF NOT EXISTS usuarios (
     bloqueado BOOLEAN NOT NULL DEFAULT FALSE,
     token_recuperacion VARCHAR(255),
     token_expiracion BIGINT,
+    codigo_trabajador VARCHAR(50),
+    estado_validacion VARCHAR(20) NOT NULL DEFAULT 'aprobado' CHECK (estado_validacion IN ('aprobado', 'pendiente', 'rechazado')),
+    motivo_rechazo TEXT,
 
     -- Restricciones de validación
     CONSTRAINT chk_codigo_dni_longitud CHECK (LENGTH(TRIM(codigo_dni)) BETWEEN 6 AND 20),
     CONSTRAINT chk_correo_formato CHECK (correo ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$')
 );
 
--- 3. Índices para acelerar búsquedas en autenticación
+-- 3. Índices para acelerar búsquedas en autenticación y validación
 CREATE INDEX IF NOT EXISTS idx_usuarios_codigo_dni ON usuarios(codigo_dni);
 CREATE INDEX IF NOT EXISTS idx_usuarios_correo ON usuarios(correo);
+CREATE INDEX IF NOT EXISTS idx_usuarios_estado_validacion ON usuarios(estado_validacion);

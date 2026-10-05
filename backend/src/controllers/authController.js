@@ -64,27 +64,46 @@ export const AuthController = {
         return res.status(409).json({ message: 'Ya existe un usuario registrado con este correo.' });
       }
 
+      // Criterio 1 (HU-U02): Validación de requisito adicional para personal administrativo
+      const cleanTrabajador = (req.body.codigo_trabajador || req.body.codigoTrabajador || '').trim();
+      if (rol === 'administrativo' && !cleanTrabajador) {
+        return res.status(400).json({
+          message: 'El Código de Trabajador o documento de validación es obligatorio para el personal administrativo.'
+        });
+      }
+
       // Hashing seguro de contraseña
       const salt = await bcrypt.genSalt(10);
       const passwordHash = await bcrypt.hash(password, salt);
+
+      const estadoValidacion = rol === 'administrativo' ? 'pendiente' : 'aprobado';
 
       const nuevoUsuario = await UserModel.create({
         codigo_dni: cleanCodigo,
         nombre: cleanNombre,
         correo: cleanCorreo,
         password_hash: passwordHash,
-        rol
+        rol,
+        codigo_trabajador: cleanTrabajador || null,
+        estado_validacion: estadoValidacion
       });
+
+      const mensajeExito = rol === 'administrativo'
+        ? '¡Registro completado! Tu cuenta se encuentra en estado PENDIENTE de validación por un administrador.'
+        : 'Usuario registrado exitosamente.';
 
       return res.status(201).json({
         success: true,
-        message: 'Usuario registrado exitosamente.',
+        message: mensajeExito,
+        pendienteValidacion: estadoValidacion === 'pendiente',
         usuario: {
           id: nuevoUsuario.id,
           codigo_dni: nuevoUsuario.codigo_dni,
           nombre: nuevoUsuario.nombre,
           correo: nuevoUsuario.correo,
-          rol: nuevoUsuario.rol
+          rol: nuevoUsuario.rol,
+          codigo_trabajador: nuevoUsuario.codigo_trabajador,
+          estado_validacion: nuevoUsuario.estado_validacion
         }
       });
     } catch (error) {
@@ -149,13 +168,31 @@ export const AuthController = {
       // Credenciales válidas: reiniciar contador de intentos
       await UserModel.resetIntentos(usuario.id);
 
+      // Criterio 2 y 5 (HU-U02): Validar estado para rol administrativo
+      if (usuario.rol === 'administrativo') {
+        if (usuario.estado_validacion === 'pendiente') {
+          return res.status(403).json({
+            message: 'Tu cuenta administrativa se encuentra en estado PENDIENTE de validación por un administrador superior.',
+            pendienteValidacion: true
+          });
+        }
+        if (usuario.estado_validacion === 'rechazado') {
+          return res.status(403).json({
+            message: `Tu solicitud de registro administrativo fue rechazada.${usuario.motivo_rechazo ? ` Motivo: ${usuario.motivo_rechazo}` : ''}`,
+            rechazado: true,
+            motivo: usuario.motivo_rechazo
+          });
+        }
+      }
+
       // Generar token JWT
       const token = jwt.sign(
         {
           id: usuario.id,
           codigo_dni: usuario.codigo_dni,
           correo: usuario.correo,
-          rol: usuario.rol
+          rol: usuario.rol,
+          estado_validacion: usuario.estado_validacion
         },
         JWT_SECRET,
         { expiresIn: '8h' }
@@ -170,7 +207,9 @@ export const AuthController = {
           codigo_dni: usuario.codigo_dni,
           nombre: usuario.nombre,
           correo: usuario.correo,
-          rol: usuario.rol
+          rol: usuario.rol,
+          codigo_trabajador: usuario.codigo_trabajador,
+          estado_validacion: usuario.estado_validacion
         }
       });
     } catch (error) {

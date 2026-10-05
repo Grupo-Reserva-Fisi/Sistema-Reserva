@@ -18,6 +18,18 @@
      ```
   7. Reiniciar el backend para que los correos OTP salgan en vivo vía Gmail.
 
+## ✅ Historias de Usuario Implementadas
+
+- [x] **HU-U01 - Registro e Inicio de Sesión de Usuario:**
+  - Autenticación JWT, encriptación bcrypt, control anti-fuerza bruta (bloqueo al 3er fallo consecutivo), recuperación de contraseña mediante código de seguridad OTP de 6 dígitos.
+- [x] **HU-U02 - Registro y Validación de Personal Administrativo:**
+  - Registro con requisito adicional (código de trabajador / documento acreditador).
+  - Estado `pendiente` que bloquea login administrativo hasta validación superior.
+  - Panel administrativo oficial de validación (`ValidacionPersonal.jsx` y endpoints `/api/admin/*`) con acciones de Aprobar y Rechazar.
+  - Registro de motivo de rechazo y notificaciones automáticas por correo electrónico para aprobación y rechazo.
+  - Persistencia híbrida en tiempo real desplegada en Convex Cloud Producción (`proficient-wildebeest-749`) y SQLite.
+  - Suite de 9 pruebas de integración automatizadas (`npm run test:hu2` en `backend/`).
+
 ---
 
 ## 🚀 Pendientes para la Iteración 2 (Próximos Sprints)

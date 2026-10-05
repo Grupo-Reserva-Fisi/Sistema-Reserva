@@ -99,9 +99,10 @@ Sistema Web integral para la gestión, reservación de áreas de recreación, sa
 
 ## 📹 Video Demostrativo y Pruebas Automatizadas (Playwright)
 
-El repositorio incluye la grabación en video del flujo completo de la prueba E2E ejecutada con navegador visible:
+El repositorio incluye la grabación en video del flujo completo de las pruebas E2E ejecutadas con navegador visible:
 
-- 🎬 **Video demostración:** [`docs/videos/prueba_e2e_playwright.mp4`](./docs/videos/prueba_e2e_playwright.mp4)
+- 🎬 **Video demostración HU-U01 + HU-U02:** [`docs/videos/prueba_e2e_playwright_hu_u02.mp4`](./docs/videos/prueba_e2e_playwright_hu_u02.mp4)
+- 🎬 **Video demostración HU-U01:** [`docs/videos/prueba_e2e_playwright.mp4`](./docs/videos/prueba_e2e_playwright.mp4)
 - 📸 **Capturas generadas:** Disponibles en [`frontend/e2e-screenshots/`](./frontend/e2e-screenshots/):
   - `01_login_view.png` — Pantalla de login inicial.
   - `02_register_view.png` — Formulario de registro a 2 columnas.
@@ -112,6 +113,11 @@ El repositorio incluye la grabación en video del flujo completo de la prueba E2
   - `07_forgot_password_step2.png` — Ingreso de código OTP y nueva contraseña.
   - `08_password_reset_success.png` — Confirmación de desbloqueo exitoso.
   - `09_dashboard_post_unblock.png` — Inicio de sesión tras recuperación.
+  - `10_registro_admin_pendiente.png` — Registro con código de trabajador en estado pendiente (HU-U02).
+  - `11_login_bloqueado_pendiente.png` — Bloqueo de login por cuenta pendiente de validación (HU-U02).
+  - `12_panel_validacion_admin.png` — Panel de validación de personal para administradores (HU-U02).
+  - `13_aprobacion_exitosa_admin.png` — Aprobación en vivo del postulante administrativo (HU-U02).
+  - `14_dashboard_admin_aprobado.png` — Ingreso exitoso y acceso al sistema del personal aprobado (HU-U02).
 
 ### Cómo ejecutar las pruebas con navegador visible (`headless: false`):
 ```bash
